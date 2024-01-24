@@ -208,6 +208,7 @@ void PathTrackingPid::configure(
   marker_poses_pub_     = node->create_publisher<visualization_msgs::msg::Marker>("visualization_marker_poses", 5);
   marker_goals_pub_     = node->create_publisher<visualization_msgs::msg::Marker>("visualization_marker_goals", 5);
   path_pub_             = node->create_publisher<nav_msgs::msg::Path>("visualization_path", 1);
+  predicted_pub_        = node->create_publisher<nav_msgs::msg::Path>("predicted_path", 1);
   debug_pub_            = node->create_publisher<path_tracking_pid::msg::PidDebug>("debug", 1); //NOTE
   feedback_pub_         = node->create_publisher<path_tracking_pid::msg::PidFeedback>("feedback", 1); //NOTE
 
@@ -230,6 +231,7 @@ void PathTrackingPid::cleanup()
   marker_poses_pub_.reset();
   marker_goals_pub_.reset();
   path_pub_.reset();
+  predicted_pub_.reset();
   debug_pub_.reset();
   feedback_pub_.reset();
 }
@@ -240,6 +242,7 @@ void PathTrackingPid::activate()
   marker_poses_pub_     ->on_activate();
   marker_goals_pub_     ->on_activate();
   path_pub_             ->on_activate();
+  predicted_pub_        ->on_activate();
   debug_pub_            ->on_activate();
   feedback_pub_         ->on_activate();
 
@@ -257,6 +260,7 @@ void PathTrackingPid::deactivate()
   marker_poses_pub_     ->on_deactivate();
   marker_goals_pub_     ->on_deactivate();
   path_pub_             ->on_deactivate();
+  predicted_pub_        ->on_deactivate();
   debug_pub_            ->on_deactivate();
   feedback_pub_         ->on_deactivate();
   dyn_params_handler_.reset();
@@ -333,6 +337,22 @@ geometry_msgs::msg::TwistStamped PathTrackingPid::computeVelocityCommands(
 bool PathTrackingPid::computeVelocityCommands(geometry_msgs::msg::TwistStamped& cmd_vel)
 {
   RCLCPP_DEBUG(node_->get_logger(), "METHOD CHECK: start of computeVelMethod"); //DEBUG
+
+  if (pid_controller_.getConfig().use_mpc)
+  {
+    predicted_plan_ = pid_controller_.getPredictedPlan();
+    if (!predicted_plan_.empty())
+    {
+      RCLCPP_ERROR(node_->get_logger(), "Publish the predicted path...");
+      predicted_path_.header = global_plan_.at(0).header;
+      predicted_path_.poses = predicted_plan_;
+      predicted_pub_->publish(predicted_path_);
+    }
+    else {
+      RCLCPP_ERROR(node_->get_logger(), "Predicted path is empty!!! Predicted path is empty!!! Predicted path is empty!!!...");
+    }
+  }
+
 
   rclcpp::Time now = node_->get_clock()->now();
   if (isZero(prev_time_)) //NOTE: isZero is an adjusted function from the ros::time api
@@ -550,7 +570,7 @@ void PathTrackingPid::setPlan(const nav_msgs::msg::Path & path)
     received_path_.poses = global_plan_;
     path_pub_->publish(received_path_);
   }
-
+  
   try
   {
     RCLCPP_DEBUG(node_->get_logger(), "map_frame: %s, plan_frame: %s, base_link_frame: %s", map_frame_.c_str(), path_frame.c_str(), base_link_frame_.c_str());

@@ -175,6 +175,7 @@ public:
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<visualization_msgs::msg::Marker>>      marker_poses_pub_;
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<visualization_msgs::msg::Marker>>      marker_goals_pub_;
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>>                  path_pub_;
+  std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>>                  predicted_pub_;
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<path_tracking_pid::msg::PidFeedback>>  feedback_pub_;
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<path_tracking_pid::msg::PidDebug>>     debug_pub_;
 
@@ -233,11 +234,15 @@ private:
 
   nav_msgs::msg::Path received_path_;
 
+  nav_msgs::msg::Path predicted_path_;
+
   geometry_msgs::msg::TransformStamped tfCurPoseStamped_;
 
   PidConfig config_;
 
   std::vector<geometry_msgs::msg::PoseStamped> global_plan_;
+
+  std::vector<geometry_msgs::msg::PoseStamped> predicted_plan_;
 
   // Used for tricycle model
   bool use_tricycle_model_;

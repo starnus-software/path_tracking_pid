@@ -162,6 +162,7 @@ private:
   // Rviz visualization
   ros::Publisher marker_pub_;
   ros::Publisher path_pub_;
+  ros::Publisher predicted_pub_;
   ros::Publisher collision_marker_pub_;
 
   ros::Subscriber sub_odom_;

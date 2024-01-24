@@ -9,6 +9,7 @@
 #include <angles/angles.h>
 #include "builtin_interfaces/msg/duration.hpp"
 #include <geometry_msgs/msg/pose_stamped.hpp>
+#include <geometry_msgs/msg/pose_stamped.hpp>
 #include <geometry_msgs/msg/twist.hpp>
 #include <nav_msgs/msg/path.hpp>
 #include "nav2_util/odometry_utils.hpp"
@@ -21,6 +22,8 @@
 #include <tf2/utils.h>
 #include <tf2/convert.h>
 #include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
+
+
 
 // Typesafe sign implementation with signum:
 // https://stackoverflow.com/a/4609795
@@ -303,6 +306,12 @@ public:
     return controller_state_;
   }
 
+  // Added get-function for predicted plan
+  std::vector<geometry_msgs::msg::PoseStamped> getPredictedPlan()
+  {
+    return predicted_plan;
+  }
+
   // Set new vel_max_external value
   void setVelMaxExternal(double value);
 
@@ -341,6 +350,8 @@ private:
 
   // Global Plan variables
   std::vector<tf2::Transform> global_plan_tf_;  // Global plan vector
+  std::vector<tf2::Transform> predicted_plan_tf;  // Predicted plan vector
+  std::vector<geometry_msgs::msg::PoseStamped> predicted_plan; // Added predicted plan var
   std::vector<double> distance_to_goal_vector_;  // Vector with distances to goal
   std::vector<double> turning_radius_inv_vector_;  // Vector with computed turning radius inverse
   double distance_to_goal_;
